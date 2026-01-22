@@ -1,0 +1,151 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-title>Admin Panel</ion-title>
+    </ion-toolbar>
+    <ion-toolbar>
+        <ion-segment [(ngModel)]="selectedSegment" (ionChange)="segmentChanged($event)">
+            <ion-segment-button value="departments">
+                <ion-label>Depts</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="sections">
+                <ion-label>Sections</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="students">
+                <ion-label>Students</ion-label>
+            </ion-segment-button>
+        </ion-segment>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+    <!-- Add Department -->
+    <div *ngIf="selectedSegment === 'departments'">
+        <ion-card>
+            <ion-card-header>
+                <ion-card-title>Add Department</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                <ion-item>
+                    <ion-label position="floating">Department Name</ion-label>
+                    <ion-input [(ngModel)]="deptName" placeholder="e.g., Computer Science"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="floating">Department Code</ion-label>
+                    <ion-input [(ngModel)]="deptCode" placeholder="e.g., CSE"></ion-input>
+                </ion-item>
+                <ion-button expand="block" class="ion-margin-top" (click)="addDepartment()">
+                    Add Department
+                </ion-button>
+            </ion-card-content>
+        </ion-card>
+
+        <ion-list>
+            <ion-list-header>
+                <ion-label>Existing Departments</ion-label>
+            </ion-list-header>
+            <ion-item *ngFor="let dept of departments">
+                <ion-label>{{ dept.name }}</ion-label>
+            </ion-item>
+        </ion-list>
+    </div>
+
+    <!-- Add Section -->
+    <div *ngIf="selectedSegment === 'sections'">
+        <ion-card>
+            <ion-card-header>
+                <ion-card-title>Add Section</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                <ion-item>
+                    <ion-select label="Select Department" [(ngModel)]="sectionDeptId">
+                        <ion-select-option *ngFor="let dept of departments" [value]="dept.id">
+                            {{ dept.name }}
+                        </ion-select-option>
+                    </ion-select>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="floating">Section Name</ion-label>
+                    <ion-input [(ngModel)]="sectionName" placeholder="e.g., A, B, Morning"></ion-input>
+                </ion-item>
+                <ion-button expand="block" class="ion-margin-top" (click)="addSection()">
+                    Add Section
+                </ion-button>
+            </ion-card-content>
+        </ion-card>
+
+        <ion-list>
+            <ion-list-header>
+                <ion-label>Sections</ion-label>
+            </ion-list-header>
+            <ion-item *ngFor="let sec of sections">
+                <ion-label>{{ sec.name }}</ion-label>
+                <ion-note slot="end">{{ getDeptName(sec.departmentId) }}</ion-note>
+            </ion-item>
+        </ion-list>
+    </div>
+
+    <!-- Add Student -->
+    <div *ngIf="selectedSegment === 'students'">
+        <ion-card>
+            <ion-card-header>
+                <ion-card-title>Add Student</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                <ion-item>
+                    <ion-label position="floating">Student ID</ion-label>
+                    <ion-input [(ngModel)]="student.studentId"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="floating">Roll No</ion-label>
+                    <ion-input [(ngModel)]="student.rollNo"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="floating">Father Name</ion-label>
+                    <ion-input [(ngModel)]="student.fatherName"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="floating">Email</ion-label>
+                    <ion-input type="email" [(ngModel)]="student.email"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="floating">Phone</ion-label>
+                    <ion-input type="tel" [(ngModel)]="student.phone"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="floating">Year</ion-label>
+                    <ion-input [(ngModel)]="student.year"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="floating">Semester</ion-label>
+                    <ion-input [(ngModel)]="student.semester"></ion-input>
+                </ion-item>
+
+                <ion-item>
+                    <ion-select label="Department" [(ngModel)]="student.departmentId"
+                        (ionChange)="onStudentDeptChange()">
+                        <ion-select-option *ngFor="let dept of departments" [value]="dept.id">
+                            {{ dept.name }}
+                        </ion-select-option>
+                    </ion-select>
+                </ion-item>
+
+                <ion-item>
+                    <ion-select label="Section" [(ngModel)]="student.sectionId" [disabled]="!student.departmentId">
+                        <!-- Filtering sections for the selected department could be done here or pipe, 
+                  but for simplicity we'll show filtered Sections in controller or just all for now if small list -->
+                        <ion-select-option *ngFor="let sec of getSectionsForDept(student.departmentId)"
+                            [value]="sec.id">
+                            {{ sec.name }}
+                        </ion-select-option>
+                    </ion-select>
+                </ion-item>
+
+                <ion-button expand="block" class="ion-margin-top" (click)="addStudent()">
+                    Add Student
+                </ion-button>
+            </ion-card-content>
+        </ion-card>
+    </div>
+
+</ion-content>
