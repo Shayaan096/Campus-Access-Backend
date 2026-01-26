@@ -6,7 +6,6 @@ export const environment = {
   production: false,
   databaseURL: 'https://campusaccessbackend-default-rtdb.asia-southeast1.firebasedatabase.app/'
 };
-
 /*
  * For easier debugging in development mode, you can import the following file
  * to ignore zone related error stack frames such as `zone.run`, `zoneDelegate.invokeTask`.

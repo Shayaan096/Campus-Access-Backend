@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { DataService, Department, Section, Student } from '../services/data.service';
 import { ToastController, LoadingController } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { trashOutline } from 'ionicons/icons';
 
 @Component({
     selector: 'app-admin',
@@ -31,38 +33,35 @@ export class AdminPage implements OnInit {
 
     // Student State
     student: Student = {
-        studentId: '',
-        rollNo: '',
+        id: '',
+        name: '',
         fatherName: '',
         email: '',
-        phone: '',
-        departmentId: '',
-        sectionId: '',
-        year: '',
-        semester: ''
+        phone: ''
     };
+    students: Student[] = [];
+    sectionIdForStudent = '';
+    deptIdForStudent = '';
 
-    constructor() { }
+    constructor() {
+        addIcons({ trashOutline });
+    }
 
     ngOnInit() {
         this.loadDepartments();
-        this.loadSections();
     }
 
     segmentChanged(ev: any) {
         this.selectedSegment = ev.detail.value;
+        if (this.selectedSegment === 'sections' && this.departments.length > 0) {
+            this.loadSections();
+        }
     }
 
     // --- Departments ---
-
     loadDepartments() {
-        this.dataService.getDepartments().subscribe(res => {
-            this.departments = [];
-            if (res) {
-                Object.keys(res).forEach(key => {
-                    this.departments.push({ id: key, ...res[key] });
-                });
-            }
+        this.dataService.getDepartments().subscribe((res: Department[]) => {
+            this.departments = res || [];
         });
     }
 
@@ -74,54 +73,24 @@ export class AdminPage implements OnInit {
         const loading = await this.loadingCtrl.create({ message: 'Adding...' });
         await loading.present();
 
-        this.dataService.addDepartment({ name: this.deptName, code: this.deptCode }).subscribe({
+        const id = 'dept_' + Date.now();
+        const newDept: Department = {
+            id: id,
+            name: this.deptName,
+            code: this.deptCode
+        };
+
+        this.dataService.addDepartment(newDept).subscribe({
             next: async () => {
                 await loading.dismiss();
                 this.showToast('Department Added!');
                 this.deptName = '';
                 this.deptCode = '';
-                this.loadDepartments(); // Refresh list
+                this.loadDepartments();
             },
-            error: async (err) => {
+            error: async (err: any) => {
                 await loading.dismiss();
                 this.showToast('Error adding department');
-                console.error(err);
-            }
-        });
-    }
-
-    // --- Sections ---
-
-    loadSections() {
-        // For now getting all sections. 
-        this.dataService.getSections('').subscribe(res => {
-            this.sections = [];
-            if (res) {
-                Object.keys(res).forEach(key => {
-                    this.sections.push({ id: key, ...res[key] });
-                });
-            }
-        });
-    }
-
-    async addSection() {
-        if (!this.sectionName || !this.sectionDeptId) {
-            this.showToast('Please fill all fields');
-            return;
-        }
-        const loading = await this.loadingCtrl.create({ message: 'Adding...' });
-        await loading.present();
-
-        this.dataService.addSection({ name: this.sectionName, departmentId: this.sectionDeptId }).subscribe({
-            next: async () => {
-                await loading.dismiss();
-                this.showToast('Section Added!');
-                this.sectionName = '';
-                this.loadSections();
-            },
-            error: async (err) => {
-                await loading.dismiss();
-                this.showToast('Error adding section');
                 console.error(err);
             }
         });
@@ -132,31 +101,90 @@ export class AdminPage implements OnInit {
         return dept ? dept.name : 'Unknown';
     }
 
-    // --- Students ---
-
-    onStudentDeptChange() {
-        this.student.sectionId = ''; // Reset section when dept changes
+    // --- Sections ---
+    loadSections(deptId?: string) {
+        const idToLoad = deptId || this.sectionDeptId || this.deptIdForStudent;
+        if (idToLoad) {
+            this.dataService.getSections(idToLoad).subscribe((res: Section[]) => {
+                this.sections = res || [];
+            });
+        }
     }
 
-    getSectionsForDept(deptId: string): Section[] {
-        return this.sections.filter(s => s.departmentId === deptId);
-    }
-
-    async addStudent() {
-        if (!this.student.studentId || !this.student.rollNo || !this.student.departmentId || !this.student.sectionId) {
-            this.showToast('Please fill in required fields (ID, Roll No, Dept, Section)');
+    async addSection() {
+        if (!this.sectionName || !this.sectionDeptId) {
+            this.showToast('Please fill all fields');
             return;
         }
         const loading = await this.loadingCtrl.create({ message: 'Adding...' });
         await loading.present();
 
-        this.dataService.addStudent(this.student).subscribe({
+        const id = 'sec_' + Date.now();
+        const newSec: Section = {
+            id: id,
+            name: this.sectionName,
+            departmentId: this.sectionDeptId
+        };
+
+        this.dataService.addSection(this.sectionDeptId, newSec).subscribe({
+            next: async () => {
+                await loading.dismiss();
+                this.showToast('Section Added!');
+                this.sectionName = '';
+                this.loadSections(this.sectionDeptId);
+            },
+            error: async (err: any) => {
+                await loading.dismiss();
+                this.showToast('Error adding section');
+                console.error(err);
+            }
+        });
+    }
+
+    // --- Students ---
+    loadStudents() {
+        if (this.deptIdForStudent && this.sectionIdForStudent) {
+            this.dataService.getStudents(this.deptIdForStudent, this.sectionIdForStudent).subscribe((res: Student[]) => {
+                this.students = res || [];
+            });
+        }
+    }
+
+    async deleteStudent(stu: Student) {
+        if (!stu.firebaseKey) return;
+
+        const loading = await this.loadingCtrl.create({ message: 'Deleting...' });
+        await loading.present();
+
+        this.dataService.deleteStudent(stu.firebaseKey).subscribe({
+            next: async () => {
+                await loading.dismiss();
+                this.showToast('Student Deleted!');
+                this.loadStudents();
+            },
+            error: async (err) => {
+                await loading.dismiss();
+                this.showToast('Error deleting student');
+            }
+        });
+    }
+
+    async addStudent() {
+        if (!this.student.id || !this.student.name || !this.deptIdForStudent || !this.sectionIdForStudent) {
+            this.showToast('Please fill in required fields (ID, Name, Dept, Section)');
+            return;
+        }
+        const loading = await this.loadingCtrl.create({ message: 'Adding...' });
+        await loading.present();
+
+        this.dataService.addStudent(this.deptIdForStudent, this.sectionIdForStudent, this.student).subscribe({
             next: async () => {
                 await loading.dismiss();
                 this.showToast('Student Added Successfully!');
+                this.loadStudents();
                 this.resetStudentForm();
             },
-            error: async (err) => {
+            error: async (err: any) => {
                 await loading.dismiss();
                 this.showToast('Error adding student');
                 console.error(err);
@@ -166,16 +194,14 @@ export class AdminPage implements OnInit {
 
     resetStudentForm() {
         this.student = {
-            studentId: '',
-            rollNo: '',
+            id: '',
+            name: '',
             fatherName: '',
             email: '',
-            phone: '',
-            departmentId: '',
-            sectionId: '',
-            year: '',
-            semester: ''
+            phone: ''
         };
+        // Keep the selection so the list is still visible
+        // this.sectionIdForStudent = '';
     }
 
     async showToast(msg: string) {

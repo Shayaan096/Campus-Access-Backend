@@ -13,5 +13,9 @@ export const routes: Routes = [
     path: '',
     redirectTo: 'admin',
     pathMatch: 'full',
+  },  {
+    path: 'student-login',
+    loadComponent: () => import('./student-login/student-login.page').then( m => m.StudentLoginPage)
   },
+
 ];

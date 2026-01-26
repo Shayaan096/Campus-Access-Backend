@@ -1,0 +1,12 @@
+make me a login api for student app login.....so students would enter the data and if the admin data base has the data the student would gain access......simple...following data user needs to put 
+{
+    "name": "abbas",
+    "rollNo": "11223344",
+    "fatherName": "Ahmed Raza",
+    "email": "zaheerstudioz@gmail.com",
+    "phone": "03027251287",
+    "deptId": "-OjfI3YDSO1sPysLbQwr",
+    "secId": "-OjfILkkMe6KVuepY7YV"
+}
+
+in the student app this is the form that user fills to proceed..... i only need you to make me an api so i can implement it in the student user app

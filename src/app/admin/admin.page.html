@@ -80,7 +80,7 @@
             </ion-list-header>
             <ion-item *ngFor="let sec of sections">
                 <ion-label>{{ sec.name }}</ion-label>
-                <ion-note slot="end">{{ getDeptName(sec.departmentId) }}</ion-note>
+                <ion-note slot="end">{{ getDeptName(sectionDeptId) }}</ion-note>
             </ion-item>
         </ion-list>
     </div>
@@ -93,37 +93,32 @@
             </ion-card-header>
             <ion-card-content>
                 <ion-item>
-                    <ion-label position="floating">Student ID</ion-label>
-                    <ion-input [(ngModel)]="student.studentId"></ion-input>
+                    <ion-label position="floating">Student Full Name</ion-label>
+                    <ion-input [(ngModel)]="student.name" placeholder="e.g. Ali Khan"></ion-input>
                 </ion-item>
+
                 <ion-item>
-                    <ion-label position="floating">Roll No</ion-label>
-                    <ion-input [(ngModel)]="student.rollNo"></ion-input>
+                    <ion-label position="floating">Student ID / Roll No</ion-label>
+                    <ion-input [(ngModel)]="student.id" placeholder="e.g. 2021-CS-101"></ion-input>
                 </ion-item>
+
                 <ion-item>
                     <ion-label position="floating">Father Name</ion-label>
                     <ion-input [(ngModel)]="student.fatherName"></ion-input>
                 </ion-item>
+
                 <ion-item>
                     <ion-label position="floating">Email</ion-label>
                     <ion-input type="email" [(ngModel)]="student.email"></ion-input>
                 </ion-item>
+
                 <ion-item>
                     <ion-label position="floating">Phone</ion-label>
                     <ion-input type="tel" [(ngModel)]="student.phone"></ion-input>
                 </ion-item>
-                <ion-item>
-                    <ion-label position="floating">Year</ion-label>
-                    <ion-input [(ngModel)]="student.year"></ion-input>
-                </ion-item>
-                <ion-item>
-                    <ion-label position="floating">Semester</ion-label>
-                    <ion-input [(ngModel)]="student.semester"></ion-input>
-                </ion-item>
 
                 <ion-item>
-                    <ion-select label="Department" [(ngModel)]="student.departmentId"
-                        (ionChange)="onStudentDeptChange()">
+                    <ion-select label="Department" [(ngModel)]="deptIdForStudent" (ionChange)="loadSections()">
                         <ion-select-option *ngFor="let dept of departments" [value]="dept.id">
                             {{ dept.name }}
                         </ion-select-option>
@@ -131,11 +126,9 @@
                 </ion-item>
 
                 <ion-item>
-                    <ion-select label="Section" [(ngModel)]="student.sectionId" [disabled]="!student.departmentId">
-                        <!-- Filtering sections for the selected department could be done here or pipe, 
-                  but for simplicity we'll show filtered Sections in controller or just all for now if small list -->
-                        <ion-select-option *ngFor="let sec of getSectionsForDept(student.departmentId)"
-                            [value]="sec.id">
+                    <ion-select label="Section" [(ngModel)]="sectionIdForStudent" [disabled]="!deptIdForStudent"
+                        (ionChange)="loadStudents()">
+                        <ion-select-option *ngFor="let sec of sections" [value]="sec.id">
                             {{ sec.name }}
                         </ion-select-option>
                     </ion-select>
@@ -146,6 +139,22 @@
                 </ion-button>
             </ion-card-content>
         </ion-card>
+
+        <ion-list *ngIf="students.length > 0">
+            <ion-list-header>
+                <ion-label>Registered Students</ion-label>
+            </ion-list-header>
+            <ion-item *ngFor="let stu of students">
+                <ion-label>
+                    <h2>{{ stu.name }}</h2>
+                    <p>Roll No / ID: {{ stu.id }}</p>
+                    <p>{{ stu.email }} | {{ stu.phone }}</p>
+                </ion-label>
+                <ion-button slot="end" fill="clear" color="danger" (click)="deleteStudent(stu)">
+                    <ion-icon name="trash-outline"></ion-icon>
+                </ion-button>
+            </ion-item>
+        </ion-list>
     </div>
 
 </ion-content>
